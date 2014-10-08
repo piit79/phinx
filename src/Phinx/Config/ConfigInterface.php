@@ -122,4 +122,12 @@ interface ConfigInterface extends \ArrayAccess
      * @return string
      */
     public function getMigrationBaseClassName($dropNamespace = true);
+
+    /**
+     * Get the flag to auto timestamp migration class names
+     * If missing return false for backward compatibility
+     *
+     * @return boolean
+     */
+    public function getAutoTimestampClass();
 }

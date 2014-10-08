@@ -106,7 +106,7 @@ class Create extends AbstractCommand
         $this->verifyMigrationDirectory($path);
 
         $path = realpath($path);
-        $className = $input->getArgument('name');
+        $className = ucfirst($input->getArgument('name'));
 
         if (!Util::isValidPhinxClassName($className)) {
             throw new \InvalidArgumentException(sprintf(
@@ -115,15 +115,25 @@ class Create extends AbstractCommand
             ));
         }
 
-        if (!Util::isUniqueMigrationClassName($className, $path)) {
+        // if true, class names will automatically be suffixed by timestamp
+        $autoTimestampClass = $this->getConfig()->getAutoTimestampClass();
+
+        // Compute the file path
+        if ($autoTimestampClass) {
+            $timestamp = date('YmdHis');
+            $fileName  = Util::mapClassNameToFileName($className, $timestamp);
+            $className = $className . '_' . $timestamp;
+        } else {
+            $fileName = Util::mapClassNameToFileName($className);
+        }
+
+        if (!Util::isUniqueMigrationClassName($className, $path, $autoTimestampClass)) {
             throw new \InvalidArgumentException(sprintf(
                 'The migration class name "%s" already exists',
                 $className
             ));
         }
 
-        // Compute the file path
-        $fileName = Util::mapClassNameToFileName($className);
         $filePath = $path . DIRECTORY_SEPARATOR . $fileName;
 
         if (is_file($filePath)) {

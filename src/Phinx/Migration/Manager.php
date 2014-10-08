@@ -575,8 +575,10 @@ class Manager
                         throw new \InvalidArgumentException(sprintf('Duplicate migration - "%s" has the same version as "%s"', $filePath, $versions[$version]->getVersion()));
                     }
 
+                    // if true, class names will automatically be suffixed by timestamp
+                    $autoTimestampClass = $this->getConfig()->getAutoTimestampClass();
                     // convert the filename to a class name
-                    $class = Util::mapFileNameToClassName(basename($filePath));
+                    $class = Util::mapFileNameToClassName(basename($filePath), $autoTimestampClass);
 
                     if (isset($fileNames[$class])) {
                         throw new \InvalidArgumentException(sprintf(

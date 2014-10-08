@@ -294,6 +294,20 @@ class Config implements ConfigInterface
      }
 
     /**
+     * Get the flag to auto timestamp migration class names
+     * If missing return false for backward compatibility
+     * 
+     * @return boolean
+     */
+    public function getAutoTimestampClass()
+    {
+        if (!isset($this->values['auto_timestamp_class'])) {
+            return false;
+        }
+        return filter_var($this->values['auto_timestamp_class'], FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
      * Replace tokens in the specified array.
      *
      * @param array $arr Array to replace

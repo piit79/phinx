@@ -62,12 +62,15 @@ class UtilTest extends \PHPUnit_Framework_TestCase
     public function testMapFileNameToClassName()
     {
         $expectedResults = array(
-            '20150902094024_create_user_table.php'    => 'CreateUserTable',
-            '20150902102548_my_first_migration2.php'  => 'MyFirstMigration2',
+            array('20150902094024_create_user_table.php', false, 'CreateUserTable'),
+            array('20150902102548_my_first_migration2.php', false, 'MyFirstMigration2'),
+            array('20150902094024_create_user_table2.php', true, 'CreateUserTable2_20150902094024'),
+            array('20150902102548_my_second_migration.php', true, 'MySecondMigration_20150902102548'),
         );
 
-        foreach ($expectedResults as $input => $expectedResult) {
-            $this->assertEquals($expectedResult, Util::mapFileNameToClassName($input));
+        foreach ($expectedResults as $data) {
+            list($input, $autoTimestamp, $expectedResult) = $data;
+            $this->assertEquals($expectedResult, Util::mapFileNameToClassName($input, $autoTimestamp));
         }
     }
 

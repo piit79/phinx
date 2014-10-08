@@ -38,7 +38,7 @@ class Util
     /**
      * @var string
      */
-    const MIGRATION_FILE_NAME_PATTERN = '/^\d+_([\w_]+).php$/i';
+    const MIGRATION_FILE_NAME_PATTERN = '/^(\d+)_([\w_]+).php$/i';
 
     /**
      * @var string
@@ -56,12 +56,15 @@ class Util
         return $dt->format(static::DATE_FORMAT);
     }
 
+
     /**
      * Gets an array of all the existing migration class names.
      *
+     * @param string $path migrations directory
+     * @param boolean $autoTimestamp true if auto timestamping of class names is enabled
      * @return string
      */
-    public static function getExistingMigrationClassNames($path)
+    public static function getExistingMigrationClassNames($path, $autoTimestamp = false)
     {
         $classNames = array();
 
@@ -74,7 +77,7 @@ class Util
 
         foreach ($phpFiles as $filePath) {
             if (preg_match('/([0-9]+)_([_a-z0-9]*).php/', basename($filePath))) {
-                $classNames[] = static::mapFileNameToClassName(basename($filePath));
+                $classNames[] = static::mapFileNameToClassName(basename($filePath), $autoTimestamp);
             }
         }
 
@@ -94,38 +97,52 @@ class Util
         return $matches[0];
     }
 
+
     /**
      * Turn migration names like 'CreateUserTable' into file names like
      * '12345678901234_create_user_table.php' or 'LimitResourceNamesTo30Chars' into
      * '12345678901234_limit_resource_names_to_30_chars.php'.
      *
      * @param string $className Class Name
+     * @param int|null $timestamp
      * @return string
      */
-    public static function mapClassNameToFileName($className)
+    public static function mapClassNameToFileName($className, $timestamp = null)
     {
         $arr = preg_split('/(?=[A-Z])/', $className);
         unset($arr[0]); // remove the first element ('')
-        $fileName = static::getCurrentTimestamp() . '_' . strtolower(implode($arr, '_')) . '.php';
+        if ($timestamp === null) {
+            $timestamp = static::getCurrentTimestamp();
+        }
+        $fileName = $timestamp . '_' . strtolower(implode($arr, '_')) . '.php';
         return $fileName;
     }
+
 
     /**
      * Turn file names like '12345678901234_create_user_table.php' into class
      * names like 'CreateUserTable'.
      *
      * @param string $fileName File Name
+     * @param boolean $autoTimeStamp true if auto timestamping of class names is enabled
      * @return string
      */
-    public static function mapFileNameToClassName($fileName)
+    public static function mapFileNameToClassName($fileName, $autoTimeStamp = false)
     {
         $matches = array();
+        $timestamp = '';
         if (preg_match(static::MIGRATION_FILE_NAME_PATTERN, $fileName, $matches)) {
-            $fileName = $matches[1];
+            $timestamp = $matches[1];
+            $fileName = $matches[2];
         }
 
-        return str_replace(' ', '', ucwords(str_replace('_', ' ', $fileName)));
+        $className = str_replace(' ', '', ucwords(str_replace('_', ' ', $fileName)));
+        if ($autoTimeStamp) {
+            $className .= '_' . $timestamp;
+        }
+        return $className;
     }
+
 
     /**
      * Check if a migration class name is unique regardless of the
@@ -140,11 +157,12 @@ class Util
      *
      * @param string $className Class Name
      * @param string $path Path
+     * @param boolean $autoTimestamp true if auto timestamping of class names is enabled
      * @return boolean
      */
-    public static function isUniqueMigrationClassName($className, $path)
+    public static function isUniqueMigrationClassName($className, $path, $autoTimestamp = false)
     {
-        $existingClassNames = static::getExistingMigrationClassNames($path);
+        $existingClassNames = static::getExistingMigrationClassNames($path, $autoTimestamp);
         return !(in_array($className, $existingClassNames));
     }
 
